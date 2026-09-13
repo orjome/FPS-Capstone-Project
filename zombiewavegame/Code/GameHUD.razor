@@ -1,0 +1,150 @@
+@using Sandbox;
+@using Sandbox.UI;
+@inherits PanelComponent
+
+<root>
+    <div style="position: absolute; top: 20px; left: 20px; color: white; font-size: 24px;">
+        <div>Round: @GameManager?.Round</div>
+        <div>Zombies Left: @GameManager?.ZombiesRemaining</div>
+    </div>
+
+    <div style="
+        position: absolute;
+        bottom: 24px;
+        left: 24px;
+        color: white;
+        background-color: rgba(8, 10, 14, 0.78);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 14px;
+        padding: 14px 18px;
+        min-width: 230px;
+        font-size: 20px;
+        box-shadow: 0px 8px 22px rgba(0, 0, 0, 0.45);
+        ">
+        <div style="
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: rgba(255, 255, 255, 0.65);
+            ">
+            HEALTH
+        </div>
+
+        <div style="
+            font-size: 54px;
+            font-weight: bold;
+            line-height: 56px;
+            color: #ff3333;
+            text-shadow: 0px 0px 10px rgba(255, 0, 0, 0.45);
+            ">
+            @PlayerHealth?.Health
+        </div>
+
+        <div style="
+        height: 1px;
+        background-color: rgba(255, 255, 255, 0.14);
+        margin-top: 8px;
+        margin-bottom: 8px;
+        "></div>
+
+        <div style="font-size: 17px; color: rgba(255, 255, 255, 0.85);">
+            Level: @PlayerXP?.Level
+        </div>
+
+        <div style="font-size: 15px; color: rgba(255, 255, 255, 0.65);">
+            XP: @PlayerXP?.LevelXP / @PlayerXP?.XPToNextLevel
+        </div>
+
+        <div style="font-size: 15px; color: rgba(255, 255, 255, 0.65);">
+            Spendable XP: @PlayerXP?.XP
+        </div>
+    </div>
+
+    <div style="
+        position: absolute;
+        bottom: 24px;
+        right: 24px;
+        color: white;
+        background-color: rgba(8, 10, 14, 0.78);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 14px;
+        padding: 14px 18px;
+        min-width: 260px;
+        font-size: 20px;
+        text-align: right;
+        box-shadow: 0px 8px 22px rgba(0, 0, 0, 0.45);
+        ">
+        <div style="font-size: 16px; color: rgba(255, 255, 255, 0.55);">
+            @WeaponManager?.GetSlotName(0) @(WeaponManager?.CurrentWeaponIndex == 0 ? "◄" : "")
+        </div>
+
+        <div style="font-size: 16px; color: rgba(255, 255, 255, 0.55);">
+            @WeaponManager?.GetSlotName(1) @(WeaponManager?.CurrentWeaponIndex == 1 ? "◄" : "")
+        </div>
+
+        <div style="font-size: 16px; color: rgba(255, 255, 255, 0.55);">
+            @WeaponManager?.GetSlotName(2) @(WeaponManager?.CurrentWeaponIndex == 2 ? "◄" : "")
+        </div>
+
+        <div style="
+        height: 1px;
+        background-color: rgba(255, 255, 255, 0.14);
+        margin-top: 8px;
+        margin-bottom: 8px;
+        "></div>
+
+        <div style="
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: rgba(255, 255, 255, 0.65);
+            ">
+            AMMO
+        </div>
+
+        <div style="
+            font-size: 52px;
+            font-weight: bold;
+            line-height: 56px;
+            color: white;
+            text-shadow: 0px 0px 10px rgba(255, 255, 255, 0.22);
+            ">
+            @CurrentWeapon?.Ammo
+            <span style="font-size: 28px; color: rgba(255, 255, 255, 0.35);">/</span>
+            <span style="font-size: 30px; color: rgba(255, 255, 255, 0.65);">@CurrentWeapon?.ReserveAmmo</span>
+        </div>
+
+        <div style="
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffcc33;
+            text-shadow: 0px 0px 8px rgba(255, 204, 51, 0.45);
+            ">
+            @(CurrentWeapon?.IsReloading == true ? "RELOADING..." : "")
+        </div>
+    </div>
+
+    @if (NearbyPickup != null)
+    {
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, 50px); color: yellow; font-size: 24px;">
+            Press E to pick up @NearbyPickup.WeaponName
+        </div>
+    }
+</root>
+
+@code
+{
+    ZombieGameManager GameManager => Scene.GetAllComponents<ZombieGameManager>().FirstOrDefault();
+    PlayerHealth PlayerHealth => Scene.GetAllComponents<PlayerHealth>().FirstOrDefault();
+    PlayerXP PlayerXP => Scene.GetAllComponents<PlayerXP>().FirstOrDefault();
+    WeaponManager WeaponManager => Scene.GetAllComponents<WeaponManager>().FirstOrDefault();
+    WeaponBase CurrentWeapon => WeaponManager?.CurrentWeapon;
+    WeaponPickup NearbyPickup => Scene.GetAllComponents<WeaponPickup>()
+        .Where(p => Vector3.DistanceBetween(p.WorldPosition, PlayerHealth?.WorldPosition ?? Vector3.Zero) <= p.PickupRadius)
+        .FirstOrDefault();
+
+    protected override void OnUpdate()
+    {
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,120 @@
+@using Sandbox;
+@using Sandbox.UI;
+@inherits PanelComponent
+
+<root style="width: 100%; height: 100%; pointer-events: all;">
+    @if (IsOpen)
+    {
+        <div style="position: absolute; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85);">
+           
+
+            <div style="position: absolute; top: 20px; width: 100%; text-align: center; color: white; font-size: 36px;">
+                SKILL TREE
+            </div>
+
+            <div style="position: absolute; top: 20px; right: 20px; color: yellow; font-size: 24px;">
+                Available XP: @PlayerXP?.XP
+            </div>
+
+            <div style="position: absolute; top: 80px; width: 100%; display: flex; justify-content: center; gap: 40px;">
+                
+                <!-- Combat Tree -->
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                    <div style="color: red; font-size: 28px; margin-bottom: 10px;">⚔️ Combat</div>
+                    @RenderSkill(SkillType.FastHands)
+                    @RenderSkill(SkillType.HollowPoint)
+                    @RenderSkill(SkillType.Overkill)
+                </div>
+
+                <!-- Survival Tree -->
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                    <div style="color: green; font-size: 28px; margin-bottom: 10px;">🛡️ Survival</div>
+                    @RenderSkill(SkillType.IronSkin)
+                    @RenderSkill(SkillType.Adrenaline)
+                    @RenderSkill(SkillType.LastStand)
+                </div>
+
+                <!-- Mobility Tree -->
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                    <div style="color: cyan; font-size: 28px; margin-bottom: 10px;">👟 Mobility</div>
+                    @RenderSkill(SkillType.LightFoot)
+                    @RenderSkill(SkillType.Parkour)
+                    @RenderSkill(SkillType.Slippery)
+                </div>
+
+            </div>
+
+            <div style="position: absolute; bottom: 20px; width: 100%; text-align: center; color: grey; font-size: 20px;">
+                Press TAB to close
+            </div>
+
+        </div>
+    }
+</root>
+
+@code
+{
+    public bool IsOpen { get; set; } = false;
+
+    SkillTree SkillTree => Scene.GetAllComponents<SkillTree>().FirstOrDefault();
+    PlayerXP PlayerXP => Scene.GetAllComponents<PlayerXP>().FirstOrDefault();
+
+    protected override void OnUpdate()
+    {
+        if (Input.Pressed("score"))
+        {
+            IsOpen = !IsOpen;
+
+            var controller = Scene.GetAllComponents<PlayerController>().FirstOrDefault();
+            if (controller != null)
+                controller.UseInputControls = !IsOpen;
+
+            StateHasChanged();
+        }
+
+        if (IsOpen)
+        {
+            Mouse.Visibility = MouseVisibility.Visible;
+        }
+        else
+        {
+            Mouse.Visibility = MouseVisibility.Hidden;
+        }
+
+        StateHasChanged();
+    }
+
+    RenderFragment RenderSkill(SkillType type)
+    {
+        var skill = SkillTree?.GetSkill(type);
+        if (skill == null) return null;
+
+        bool unlocked = skill.IsUnlocked;
+        bool canUnlock = skill.CanUnlock(SkillTree.Skills);
+        bool affordable = PlayerXP?.XP >= skill.XPCost;
+
+        string bgColor = unlocked ? "rgba(0,200,0,0.4)" :
+                         canUnlock && affordable ? "rgba(255,200,0,0.3)" :
+                         "rgba(255,255,255,0.1)";
+
+        string textColor = unlocked ? "lime" :
+                           canUnlock && affordable ? "yellow" :
+                           "grey";
+
+        return @<div style="width: 220px; padding: 10px; background-color: @bgColor; border-radius: 8px; cursor: pointer;"
+                     onclick="@(() => TryUnlock(type))">
+            <div style="color: @textColor; font-size: 20px;">@skill.Name</div>
+            <div style="color: white; font-size: 14px;">@skill.Description</div>
+            <div style="color: yellow; font-size: 14px;">Cost: @skill.XPCost XP</div>
+            <div style="color: @textColor; font-size: 14px;">@(unlocked ? "✅ UNLOCKED" : canUnlock && affordable ? "Click to unlock" : !canUnlock ? "🔒 Locked" : "❌ Not enough XP")</div>
+        </div>;
+    }
+
+    void TryUnlock(SkillType type)
+    {
+        Log.Info($"Trying to unlock {type}");
+        var result = SkillTree?.TryUnlock(type);
+        Log.Info($"Unlock result: {result}");
+        StateHasChanged();
+    }
+}

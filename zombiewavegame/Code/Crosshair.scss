@@ -1,0 +1,93 @@
+.crosshair-container {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate( -50%, -50% );
+	width: 20px;
+	height: 20px;
+
+	.crosshair {
+		position: absolute;
+		background-color: white;
+
+		&.top {
+			width: 2px;
+			height: 8px;
+			left: 50%;
+			bottom: 60%;
+			transform: translateX( -50% );
+		}
+
+		&.bottom {
+			width: 2px;
+			height: 8px;
+			left: 50%;
+			top: 60%;
+			transform: translateX( -50% );
+		}
+
+		&.left {
+			width: 8px;
+			height: 2px;
+			top: 50%;
+			right: 60%;
+			transform: translateY( -50% );
+		}
+
+		&.right {
+			width: 8px;
+			height: 2px;
+			top: 50%;
+			left: 60%;
+			transform: translateY( -50% );
+		}
+
+		&.dot {
+			width: 2px;
+			height: 2px;
+			left: 50%;
+			top: 50%;
+			transform: translate( -50%, -50% );
+		}
+	}
+}
+
+.hitmarker-container {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate( -50%, -50% );
+	width: 20px;
+	height: 20px;
+
+	.hitmarker {
+		position: absolute;
+		width: 6px;
+		height: 2px;
+		background-color: white;
+
+		&.tl {
+			top: 0;
+			left: 0;
+			transform: rotate( -45deg );
+		}
+
+		&.tr {
+			top: 0;
+			right: 0;
+			transform: rotate( 45deg );
+		}
+
+		&.bl {
+			bottom: 0;
+			left: 0;
+			transform: rotate( 45deg );
+		}
+
+		&.br {
+			bottom: 0;
+			right: 0;
+			transform: rotate( -45deg );
+		}
+	}
+}

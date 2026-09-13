@@ -1,0 +1,44 @@
+@using Sandbox;
+@using Sandbox.UI;
+@inherits PanelComponent
+
+<root>
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+        <!-- Crosshair lines -->
+        <div style="position: absolute; width: 2px; height: 10px; background-color: white; left: 50%; bottom: 60%; transform: translateX(-50%);"></div>
+        <div style="position: absolute; width: 2px; height: 10px; background-color: white; left: 50%; top: 60%; transform: translateX(-50%);"></div>
+        <div style="position: absolute; width: 10px; height: 2px; background-color: white; top: 50%; right: 60%; transform: translateY(-50%);"></div>
+        <div style="position: absolute; width: 10px; height: 2px; background-color: white; top: 50%; left: 60%; transform: translateY(-50%);"></div>
+
+        <!-- Hitmarker -->
+        @if (ShowHitmarker)
+        {
+            <div style="position: absolute; width: 20px; height: 3px; background-color: red; top: 0; left: 0; transform: rotate(-45deg);"></div>
+            <div style="position: absolute; width: 20px; height: 3px; background-color: red; top: 0; right: 0; transform: rotate(45deg);"></div>
+            <div style="position: absolute; width: 20px; height: 3px; background-color: red; bottom: 0; left: 0; transform: rotate(45deg);"></div>
+            <div style="position: absolute; width: 20px; height: 3px; background-color: red; bottom: 0; right: 0; transform: rotate(-45deg);"></div>
+        }
+    </div>
+</root>
+
+@code
+{
+    public bool ShowHitmarker { get; set; } = false;
+    float _hitmarkerTime = 0f;
+
+    protected override void OnUpdate()
+    {
+        if (ShowHitmarker && Time.Now >= _hitmarkerTime)
+        {
+            ShowHitmarker = false;
+            StateHasChanged();
+        }
+    }
+
+    public void TriggerHitmarker()
+    {
+        ShowHitmarker = true;
+        _hitmarkerTime = Time.Now + 0.1f;
+        StateHasChanged();
+    }
+}
