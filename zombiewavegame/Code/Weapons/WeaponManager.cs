@@ -109,4 +109,20 @@ public sealed class WeaponManager : Component
 			return "Empty";
 		return Weapons[index].WeaponName;
 	}
+
+	public void ResetForRespawn()
+	{
+		// Drop any picked-up weapons, keep the starting pistol only
+		for ( int i = 1; i < Weapons.Count; i++ )
+		{
+			if ( Weapons[i] != null )
+			{
+				Weapons[i].GameObject.Destroy();
+				Weapons[i] = null;
+			}
+		}
+
+		StartingPistol?.RefillAmmo();
+		EquipWeapon( 0 );
+	}
 }

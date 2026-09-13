@@ -32,13 +32,15 @@ public sealed class WeaponBase : Component
 	float _currentRecoil = 0f;
 	PlayerXP _ownerXP;
 	CameraComponent _camera;
+	int _initialReserveAmmo;
 
 	protected override void OnStart()
 	{
 		_ownerXP = GameObject.Root.GetComponentInChildren<PlayerXP>();
 		Ammo = MaxAmmo;
+		_initialReserveAmmo = ReserveAmmo;
 
-		_camera = Scene.GetAllComponents<CameraComponent>().FirstOrDefault();
+		_camera = GameObject.Root.GetComponentInChildren<CameraComponent>();
 		if ( _camera != null )
 		{
 			GameObject.SetParent( _camera.GameObject );
@@ -120,7 +122,7 @@ public sealed class WeaponBase : Component
 			var direction = (_camera.WorldRotation.Forward + spreadVector).Normal;
 			var ray = new Ray( _camera.WorldPosition, direction );
 			var tr = Scene.Trace.Ray( ray, 5000f )
-				.WithoutTags( "player" )
+				.IgnoreGameObjectHierarchy( GameObject.Root )
 				.Run();
 
 			if ( ShowDebugRays )
@@ -128,10 +130,11 @@ public sealed class WeaponBase : Component
 
 			if ( tr.Hit && tr.GameObject is not null )
 			{
-				var zombie = tr.GameObject.GetComponent<ZombieAI>();
-				if ( zombie != null )
+				var enemyHealth = tr.GameObject.Root.GetComponent<PlayerHealth>();
+
+				if ( enemyHealth != null )
 				{
-					zombie.TakeDamage( Damage );
+					enemyHealth.TakeDamage( Damage, GameObject.Root );
 
 					var crosshair = Scene.GetAllComponents<Crosshair>().FirstOrDefault();
 					crosshair?.TriggerHitmarker();
@@ -146,6 +149,13 @@ public sealed class WeaponBase : Component
 				}
 			}
 		}
+	}
+
+	public void RefillAmmo()
+	{
+		Ammo = MaxAmmo;
+		if ( ReserveAmmo < _initialReserveAmmo )
+			ReserveAmmo = _initialReserveAmmo;
 	}
 
 	async Task Reload()
