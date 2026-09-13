@@ -7,17 +7,18 @@ public sealed class PlayerHealth : Component
 	[Property, Sync] public bool IsDead { get; set; } = false;
 	bool _lastStandUsed = false;
 
-	public void TakeDamage( float amount )
+	[Rpc.Owner]
+	public void TakeDamage( float amount, GameObject attacker = null )
 	{
 		if ( IsDead ) return;
 
 		Health -= amount;
-		Log.Info( $"Player took {amount} damage! Health: {Health}" );
+		Log.Info( $"{GameObject.Name} took {amount} damage from {attacker?.Name ?? "unknown"}! Health: {Health}" );
 
 		if ( Health <= 0 )
 		{
 			// Check Last Stand skill
-			var skillTree = Scene.GetAllComponents<SkillTree>().FirstOrDefault();
+			var skillTree = GetComponent<SkillTree>();
 			if ( skillTree != null && skillTree.IsUnlocked( SkillType.LastStand ) && !_lastStandUsed )
 			{
 				_lastStandUsed = true;
@@ -28,43 +29,43 @@ public sealed class PlayerHealth : Component
 
 			Health = 0;
 			IsDead = true;
-			OnDeath();
+			OnDeath( attacker );
 		}
 	}
 
-	void OnDeath()
+	void OnDeath( GameObject attacker )
 	{
-		Log.Info( "Player has died!" );
+		Log.Info( $"{GameObject.Name} has died!" );
 
 		// Disable player controller so they cant move
 		var controller = GetComponent<PlayerController>();
 		if ( controller != null )
 			controller.Enabled = false;
 
-		// Disable all weapons
-		var weapons = GetComponents<WeaponBase>();
+		// Disable all weapons (including nested/picked-up ones)
+		var weapons = GetComponentsInChildren<WeaponBase>();
 		foreach ( var weapon in weapons )
 			weapon.Enabled = false;
 
-		// Notify the game manager
-		var manager = Scene.GetAllComponents<ZombieGameManager>().FirstOrDefault();
-		manager?.OnPlayerDied();
+		// Notify the game manager, crediting the killer
+		var manager = Scene.GetAllComponents<ArenaGameManager>().FirstOrDefault();
+		manager?.OnPlayerKilled( GameObject, attacker );
 	}
 
-	public void Respawn()
+	public void Respawn( Transform spawnPoint )
 	{
 		_lastStandUsed = false;
 		Health = MaxHealth;
 		IsDead = false;
 
+		WorldTransform = spawnPoint;
+
 		var controller = GetComponent<PlayerController>();
 		if ( controller != null )
 			controller.Enabled = true;
 
-		var weapons = Scene.GetAllComponents<WeaponBase>();
-		foreach ( var weapon in weapons )
-			weapon.Enabled = true;
+		GetComponent<WeaponManager>()?.ResetForRespawn();
 
-		Log.Info( "Player respawned!" );
+		Log.Info( $"{GameObject.Name} respawned!" );
 	}
 }

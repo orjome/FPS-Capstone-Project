@@ -3,9 +3,14 @@
 @inherits PanelComponent
 
 <root>
-    <div style="position: absolute; top: 20px; left: 20px; color: white; font-size: 24px;">
-        <div>Round: @GameManager?.Round</div>
-        <div>Zombies Left: @GameManager?.ZombiesRemaining</div>
+    <div style="position: absolute; top: 20px; left: 20px; color: white; font-size: 18px;">
+        <div style="font-size: 13px; letter-spacing: 2px; color: rgba(255, 255, 255, 0.65);">FIRST TO @GameManager?.KillLimit KILLS</div>
+        @foreach (var stats in AllPlayers)
+        {
+            <div style="color: @(stats.GameObject.Network.IsOwner ? "#ffcc33" : "white");">
+                @stats.DisplayName — @stats.Kills K / @stats.Deaths D
+            </div>
+        }
     </div>
 
     <div style="
@@ -124,6 +129,13 @@
         </div>
     </div>
 
+    @if (PlayerHealth?.IsDead == true)
+    {
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ff3333; font-size: 40px;">
+            Respawning...
+        </div>
+    }
+
     @if (NearbyPickup != null)
     {
         <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, 50px); color: yellow; font-size: 24px;">
@@ -134,11 +146,12 @@
 
 @code
 {
-    ZombieGameManager GameManager => Scene.GetAllComponents<ZombieGameManager>().FirstOrDefault();
-    PlayerHealth PlayerHealth => Scene.GetAllComponents<PlayerHealth>().FirstOrDefault();
-    PlayerXP PlayerXP => Scene.GetAllComponents<PlayerXP>().FirstOrDefault();
-    WeaponManager WeaponManager => Scene.GetAllComponents<WeaponManager>().FirstOrDefault();
+    ArenaGameManager GameManager => Scene.GetAllComponents<ArenaGameManager>().FirstOrDefault();
+    PlayerHealth PlayerHealth => Scene.GetAllComponents<PlayerHealth>().FirstOrDefault(p => p.GameObject.Network.IsOwner);
+    PlayerXP PlayerXP => PlayerHealth?.GetComponent<PlayerXP>();
+    WeaponManager WeaponManager => PlayerHealth?.GetComponent<WeaponManager>();
     WeaponBase CurrentWeapon => WeaponManager?.CurrentWeapon;
+    IEnumerable<PlayerStats> AllPlayers => Scene.GetAllComponents<PlayerStats>();
     WeaponPickup NearbyPickup => Scene.GetAllComponents<WeaponPickup>()
         .Where(p => Vector3.DistanceBetween(p.WorldPosition, PlayerHealth?.WorldPosition ?? Vector3.Zero) <= p.PickupRadius)
         .FirstOrDefault();

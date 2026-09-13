@@ -17,8 +17,8 @@
   ],
   "IsStandaloneOnly": false,
   "Metadata": {
-    "MaxPlayers": 64,
-    "MinPlayers": 1,
+    "MaxPlayers": 2,
+    "MinPlayers": 2,
     "TickRate": 50,
     "GameNetworkType": "Multiplayer",
     "MapSelect": "Unrestricted",
@@ -29,6 +29,6 @@
     "PerMapRanking": false,
     "LeaderboardType": "None",
     "CsProjName": "",
-    "StartupScene": "scenes/minimal.scene"
+    "StartupScene": "scenes/arena.scene"
   }
 }
